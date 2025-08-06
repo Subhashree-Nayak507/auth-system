@@ -4,7 +4,7 @@ import { users } from '@/lib/users';
 interface JWTPayload {
   username: string;
   exp?: number;
-  [key: string]: any; // for other potential claims
+   [key: string]: string | number | boolean | undefined; // for oth 
 }
 
 function base64urlToBase64(base64url: string): string {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,7 +34,7 @@ export default function LoginPage() {
     setMounted(true);
   }, []);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -56,15 +56,20 @@ export default function LoginPage() {
           setError('Invalid user role received');
         }
       } 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
       
-      if (error.response?.data?.message) {
-        setError(error.response.data.message);
-      } else if (error.response?.status === 401) {
-        setError('Invalid credentials. Please check your username and password.');
-      } else if (error.response?.status >= 500) {
-        setError('Server error. Please try again later.');
+      // Type guard to check if error is an AxiosError
+      if (axios.isAxiosError(error)) {
+        if (error.response?.data?.message) {
+          setError(error.response.data.message);
+        } else if (error.response?.status === 401) {
+          setError('Invalid credentials. Please check your username and password.');
+        } else if (error.response?.status == 500) {
+          setError('Server error. Please try again later.');
+        } else {
+          setError('Something went wrong. Please try again.');
+        }
       } else {
         setError('Something went wrong. Please try again.');
       }
@@ -75,7 +80,7 @@ export default function LoginPage() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
-      handleSubmit(e);
+      handleSubmit(e as unknown as FormEvent<HTMLFormElement>);
     }
   };
 
