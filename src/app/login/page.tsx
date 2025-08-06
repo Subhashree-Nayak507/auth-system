@@ -34,7 +34,7 @@ export default function LoginPage() {
     setMounted(true);
   }, []);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleFormSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
@@ -58,29 +58,8 @@ export default function LoginPage() {
       } 
     } catch (error: unknown) {
       console.error('Login error:', error);
-      
-      // Type guard to check if error is an AxiosError
-      if (axios.isAxiosError(error)) {
-        if (error.response?.data?.message) {
-          setError(error.response.data.message);
-        } else if (error.response?.status === 401) {
-          setError('Invalid credentials. Please check your username and password.');
-        } else if (error.response?.status == 500) {
-          setError('Server error. Please try again later.');
-        } else {
-          setError('Something went wrong. Please try again.');
-        }
-      } else {
-        setError('Something went wrong. Please try again.');
-      }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Enter') {
-      handleSubmit(e as unknown as FormEvent<HTMLFormElement>);
     }
   };
 
@@ -143,84 +122,86 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="space-y-6 relative z-10">
-            {error && (
-              <Alert className="border-red-400/50 bg-red-500/20 backdrop-blur-sm">
-                <AlertDescription className="text-red-200">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
+            <form onSubmit={handleFormSubmit} className="space-y-6">
+              {error && (
+                <Alert className="border-red-400/50 bg-red-500/20 backdrop-blur-sm">
+                  <AlertDescription className="text-red-200">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
 
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium text-violet-200">
-                Username
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-violet-300 w-5 h-5" />
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
-                  className="pl-11 h-12 bg-white/10 border-white/20 text-white placeholder:text-violet-300/60 focus:border-violet-400 focus:ring-violet-400/50 backdrop-blur-sm"
-                  autoComplete="username"
-                  suppressHydrationWarning
-                />
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-sm font-medium text-violet-200">
+                  Username
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-violet-300 w-5 h-5" />
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+                    className="pl-11 h-12 bg-white/10 border-white/20 text-white placeholder:text-violet-300/60 focus:border-violet-400 focus:ring-violet-400/50 backdrop-blur-sm"
+                    autoComplete="username"
+                    required
+                    suppressHydrationWarning
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-violet-200">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-violet-300 w-5 h-5" />
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="pl-11 pr-11 h-12 bg-white/10 border-white/20 text-white placeholder:text-violet-300/60 focus:border-violet-400 focus:ring-violet-400/50 backdrop-blur-sm"
-                  autoComplete="current-password"
-                  suppressHydrationWarning
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-violet-300 hover:text-violet-200 focus:outline-none transition-colors"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-violet-200">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-violet-300 w-5 h-5" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                    className="pl-11 pr-11 h-12 bg-white/10 border-white/20 text-white placeholder:text-violet-300/60 focus:border-violet-400 focus:ring-violet-400/50 backdrop-blur-sm"
+                    autoComplete="current-password"
+                    required
+                    suppressHydrationWarning
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-violet-300 hover:text-violet-200 focus:outline-none transition-colors"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    suppressHydrationWarning
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <CardFooter className="flex flex-col space-y-4 pt-6 relative z-10 px-0">
+                <Button
+                  type="submit"
+                  disabled={isLoading || !username.trim() || !password.trim()}
+                  className="w-full h-12 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none"
                   suppressHydrationWarning
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
+                  {isLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Signing in...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <span>Sign In</span>
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                  )}
+                </Button>
+              </CardFooter>
+            </form>
           </CardContent>
-
-          <CardFooter className="flex flex-col space-y-4 pt-6 relative z-10">
-            <Button
-              onClick={handleSubmit}
-              disabled={isLoading || !username.trim() || !password.trim()}
-              className="w-full h-12 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:transform-none"
-              type="button"
-              suppressHydrationWarning
-            >
-              {isLoading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Signing in...</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <span>Sign In</span>
-                  <Sparkles className="w-4 h-4" />
-                </div>
-              )}
-            </Button>
-          </CardFooter>
         </Card>
 
         <div className="mt-8 p-6 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-xl">
