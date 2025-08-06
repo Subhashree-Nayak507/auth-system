@@ -44,10 +44,16 @@ async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
       ['verify']
     );
 
+    // Fix: Create a new Uint8Array from the signature's buffer
+    const validSignature = new Uint8Array(signature.buffer.slice(
+      signature.byteOffset, 
+      signature.byteOffset + signature.byteLength
+    ));
+
     const isValid = await crypto.subtle.verify(
       'HMAC',
       key,
-      signature,
+      validSignature, 
       data
     );
     if (!isValid) {
