@@ -111,9 +111,7 @@ export default function LoginPage() {
         </div>
 
         <Card className="shadow-2xl  bg-white/10 backdrop-blur-xl  border-white/20 relative overflow-hidden">
-          {/* Card glow effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 blur-xl"></div>
-          
           <CardHeader className="space-y-1 pb-6 relative z-10">
             <CardTitle className="text-2xl font-semibold text-center text-white">Sign In</CardTitle>
             <CardDescription className="text-center text-violet-200/70">
