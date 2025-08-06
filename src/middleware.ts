@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { users } from '@/lib/users';
 
+interface JWTPayload {
+  username: string;
+  exp?: number;
+  [key: string]: any; // for other potential claims
+}
+
 function base64urlToBase64(base64url: string): string {
   return base64url.replace(/-/g, '+').replace(/_/g, '/').padEnd(base64url.length + (4 - base64url.length % 4) % 4, '=');
 }
@@ -15,7 +21,7 @@ function base64urlDecode(base64url: string): Uint8Array {
   return bytes;
 }
 
-async function verifyJWT(token: string, secret: string): Promise<any> {
+async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
   try {
     const [headerB64, payloadB64, signatureB64] = token.split('.'); 
     if (!headerB64 || !payloadB64 || !signatureB64) {
@@ -49,7 +55,7 @@ async function verifyJWT(token: string, secret: string): Promise<any> {
     }
 
     return payload;
-  } catch (error) {
+  } catch {
     throw new Error('Token verification failed');
   }
 }
@@ -60,10 +66,33 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get('jwt')?.value;
   const pathname = request.nextUrl.pathname;
   
+  const isRootPage = pathname === '/';
   const isLoginPage = pathname === '/login';
   const isAdminRoute = pathname.startsWith('/admin');
   const isUserRoute = pathname.startsWith('/user');
   const isProtectedRoute = isAdminRoute || isUserRoute;
+
+  // Handle root page access
+  if (isRootPage) {
+    if (token) {
+      try {
+        const decoded = await verifyJWT(token, process.env.JWT_SECRET!);
+        const user = users.find(u => u.username === decoded.username);
+        if (user) {
+          console.log('Authenticated user accessing root, redirecting to dashboard');
+          const redirectUrl = user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard';
+          return NextResponse.redirect(new URL(redirectUrl, request.url));
+        }
+      } catch {
+        console.log('Invalid token on root access, redirecting to login');
+        const response = NextResponse.redirect(new URL('/login', request.url));
+        response.cookies.delete('jwt');
+        return response;
+      }
+    }
+    console.log('No token on root access, redirecting to login');
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
 
   // Handle login page access
   if (isLoginPage) {
@@ -76,7 +105,7 @@ export async function middleware(request: NextRequest) {
           const redirectUrl = user.role === 'admin' ? '/admin/dashboard' : '/user/dashboard';
           return NextResponse.redirect(new URL(redirectUrl, request.url));
         }
-      } catch (error) {
+      } catch {
         console.log('Invalid token, allowing login page access');
         const response = NextResponse.next();
         response.cookies.delete('jwt');
@@ -112,8 +141,8 @@ export async function middleware(request: NextRequest) {
       console.log('Access granted for user:', user.username, 'role:', user.role);
       return NextResponse.next();
 
-    } catch (error) {
-      console.error('Auth error:', error);
+    } catch (authError) {
+      console.error('Auth error:', authError);
       const response = NextResponse.redirect(new URL('/login', request.url));
       response.cookies.delete('jwt');
       return response;

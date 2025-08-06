@@ -60,7 +60,7 @@ export const loginController = async (req: NextRequest) => {
 };
 
 
-export const logoutController = async (req: NextRequest) => {
+export const logoutController = async () => {
     try {
         const response = NextResponse.json(
             { 

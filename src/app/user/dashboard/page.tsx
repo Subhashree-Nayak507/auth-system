@@ -90,7 +90,7 @@ export default function UserDashboard() {
               <CardHeader>
                 <CardTitle className="text-2xl font-semibold text-white">Welcome Back to User Dashboard!</CardTitle>
                 <CardDescription className="text-violet-200/70">
-                  Here's what's happening with your account today.
+                  Here is what happening with your account today.
                 </CardDescription>
               </CardHeader>
               <CardContent>

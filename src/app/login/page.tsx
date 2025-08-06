@@ -9,11 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Lock, User, Shield, Sparkles } from 'lucide-react';
-
-interface LoginFormData {
-  username: string;
-  password: string;
-}
+import { FormEvent } from 'react';
 
 interface LoginResponse {
   success: boolean;
@@ -38,7 +34,7 @@ export default function LoginPage() {
     setMounted(true);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent | React.KeyboardEvent): Promise<void> => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
