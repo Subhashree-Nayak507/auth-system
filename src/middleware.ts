@@ -11,15 +11,14 @@ function base64urlToBase64(base64url: string): string {
   return base64url.replace(/-/g, '+').replace(/_/g, '/').padEnd(base64url.length + (4 - base64url.length % 4) % 4, '=');
 }
 
-function base64urlDecode(base64url: string): ArrayBuffer {
+function base64urlDecode(base64url: string): Uint8Array {
   const base64 = base64urlToBase64(base64url);
   const binary = atob(base64);
-  const buffer = new ArrayBuffer(binary.length);
-  const bytes = new Uint8Array(buffer);
+  const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
-  return buffer; 
+  return bytes;
 }
 
 async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
@@ -29,15 +28,13 @@ async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
       throw new Error('Invalid token format');
     }
 
-    const payloadBuffer = base64urlDecode(payloadB64);
-    const payload = JSON.parse(new TextDecoder().decode(payloadBuffer));
-    
+    const payload = JSON.parse(new TextDecoder().decode(base64urlDecode(payloadB64)));
     if (payload.exp && Date.now() >= payload.exp * 1000) {
       throw new Error('Token expired');
     }
 
     const data = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
-    const signatureBuffer = base64urlDecode(signatureB64); 
+    const signature = base64urlDecode(signatureB64);
   
     const key = await crypto.subtle.importKey(
       'raw',
@@ -50,10 +47,9 @@ async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
     const isValid = await crypto.subtle.verify(
       'HMAC',
       key,
-      signatureBuffer, // ArrayBuffer - no conversion needed
+      signature,
       data
     );
-    
     if (!isValid) {
       throw new Error('Invalid signature');
     }
